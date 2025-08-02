@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: cartrac-backend
+    container_name: carlog-backend
     ports:
       - "8000:8000"
     environment:
@@ -23,7 +23,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: cartrac-frontend
+    container_name: carlog-frontend
     ports:
       - "3000:3000"
     environment:

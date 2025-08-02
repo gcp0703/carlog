@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$PREVIOUS_TAG" ]; then
+          CHANGELOG="Initial release"
+        else
+          CHANGELOG=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s" --no-merges)
+        fi
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## Changes in this Release
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Docker Images
+          - Backend: `ghcr.io/${{ github.repository }}-backend:${{ github.ref_name }}`
+          - Frontend: `ghcr.io/${{ github.repository }}-frontend:${{ github.ref_name }}`
+          
+          ## Installation
+          ```bash
+          docker pull ghcr.io/${{ github.repository }}-backend:${{ github.ref_name }}
+          docker pull ghcr.io/${{ github.repository }}-frontend:${{ github.ref_name }}
+          ```
+        draft: false
+        prerelease: false
+
+  build-and-upload:
+    needs: create-release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Build backend distribution
+      run: |
+        cd backend
+        python -m pip install --upgrade pip setuptools wheel
+        # Create a simple setup.py for distribution
+        cat > setup.py << EOF
+        from setuptools import setup, find_packages
+        
+        with open("requirements.txt") as f:
+            requirements = f.read().splitlines()
+        
+        setup(
+            name="carlog-backend",
+            version="${{ github.ref_name }}",
+            packages=find_packages(),
+            install_requires=requirements,
+            python_requires=">=3.11",
+        )
+        EOF
+        python setup.py sdist bdist_wheel
+        cd ..
+        tar -czf carlog-backend-${{ github.ref_name }}.tar.gz backend/dist
+    
+    - name: Build frontend distribution
+      run: |
+        cd frontend
+        npm ci
+        npm run build
+        cd ..
+        tar -czf carlog-frontend-${{ github.ref_name }}.tar.gz frontend/build
+    
+    - name: Create docker-compose bundle
+      run: |
+        mkdir -p release-bundle
+        cp docker-compose.yml release-bundle/
+        cp -r .github/workflows release-bundle/
+        echo "CARLOG_VERSION=${{ github.ref_name }}" > release-bundle/.env
+        tar -czf carlog-docker-${{ github.ref_name }}.tar.gz release-bundle
+    
+    - name: Upload Backend Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./carlog-backend-${{ github.ref_name }}.tar.gz
+        asset_name: carlog-backend-${{ github.ref_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Frontend Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./carlog-frontend-${{ github.ref_name }}.tar.gz
+        asset_name: carlog-frontend-${{ github.ref_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Docker Compose Bundle
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./carlog-docker-${{ github.ref_name }}.tar.gz
+        asset_name: carlog-docker-${{ github.ref_name }}.tar.gz
+        asset_content_type: application/gzip
