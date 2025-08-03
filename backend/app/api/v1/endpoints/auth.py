@@ -102,8 +102,9 @@ async def register(user_data: UserCreate) -> Any:
             email=user_in_db.email,
             phone_number=user_in_db.phone_number,
             zip_code=user_in_db.zip_code,
-            has_garage=user_in_db.has_garage,
-            usage_pattern=user_in_db.usage_pattern
+            email_notifications_enabled=user_in_db.email_notifications_enabled,
+            sms_notifications_enabled=user_in_db.sms_notifications_enabled,
+            account_active=user_in_db.account_active
         )
     except HTTPException:
         # Re-raise HTTP exceptions without modification
