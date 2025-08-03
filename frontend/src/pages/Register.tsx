@@ -6,6 +6,7 @@ const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -19,16 +20,16 @@ const Register: React.FC = () => {
       return;
     }
     
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
     
     try {
-      await register(email, password);
-      navigate('/dashboard');
+      await register(email, password, phoneNumber);
+      navigate('/profile');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     }
   };
 
@@ -43,6 +44,21 @@ const Register: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            style={{
+              width: '100%',
+              padding: '10px',
+              fontSize: '16px',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <input
+            type="tel"
+            placeholder="Phone Number (optional)"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             style={{
               width: '100%',
               padding: '10px',

@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 
 router = APIRouter()
 
@@ -13,7 +13,9 @@ async def sms_webhook(request: Request) -> Any:
 
 
 @router.post("/send-reminder/{user_id}")
-async def send_maintenance_reminder(user_id: str, vehicle_id: str, service_type: str) -> Any:
+async def send_maintenance_reminder(
+    user_id: str, vehicle_id: str, service_type: str
+) -> Any:
     # TODO: Implement SMS reminder sending via Twilio
     return {"message": f"Send SMS reminder to user {user_id} - to be implemented"}
 

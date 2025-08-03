@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -9,12 +7,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Update these to match your existing Neo4j instance
-      - NEO4J_URI=bolt://docker:7687
+      - NEO4J_URI=bolt://localhost:7687
       - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=password
+      - NEO4J_PASSWORD=
     env_file:
       - ./backend/.env
+    network_mode: "bridge"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -34,3 +34,4 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: npm start
+

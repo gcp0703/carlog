@@ -1,5 +1,30 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { AuthTokens, User, Vehicle, MaintenanceRecord, MaintenanceSchedule } from '../types';
+
+// Utility function to extract error messages from API responses
+export const extractErrorMessage = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError<{ detail?: string }>;
+    
+    // Extract the detail field from the response data
+    if (axiosError.response?.data?.detail) {
+      return axiosError.response.data.detail;
+    }
+    
+    // Fall back to error message or status text
+    if (axiosError.message) {
+      return axiosError.message;
+    }
+    
+    // Fall back to status text
+    if (axiosError.response?.statusText) {
+      return axiosError.response.statusText;
+    }
+  }
+  
+  // Default fallback
+  return 'An unexpected error occurred';
+};
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
@@ -18,17 +43,40 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle errors consistently
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    // For 401 errors, clear the token and redirect to login
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      // Don't redirect here as it would interfere with the components
+    }
+    
+    // Re-throw the error to be handled by individual components
+    return Promise.reject(error);
+  }
+);
+
 export const authService = {
   login: async (email: string, password: string): Promise<AuthTokens> => {
     const response = await api.post('/auth/login', new URLSearchParams({
       username: email,
       password: password,
-    }));
+    }), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
     return response.data;
   },
   
-  register: async (email: string, password: string): Promise<void> => {
-    await api.post('/auth/register', { email, password });
+  register: async (email: string, password: string, phoneNumber?: string): Promise<void> => {
+    const payload: { email: string; password: string; phone_number?: string } = { email, password };
+    if (phoneNumber) {
+      payload.phone_number = phoneNumber;
+    }
+    await api.post('/auth/register', payload);
   },
 };
 
@@ -45,6 +93,21 @@ export const userService = {
   
   deleteMe: async (): Promise<void> => {
     await api.delete('/users/me');
+  },
+  
+  unsubscribe: async (): Promise<{ message: string }> => {
+    const response = await api.post('/users/me/unsubscribe');
+    return response.data;
+  },
+  
+  smsOptOut: async (): Promise<{ message: string }> => {
+    const response = await api.post('/users/me/sms-opt-out');
+    return response.data;
+  },
+  
+  smsOptIn: async (): Promise<{ message: string }> => {
+    const response = await api.post('/users/me/sms-opt-in');
+    return response.data;
   },
 };
 
@@ -71,6 +134,29 @@ export const vehicleService = {
   
   delete: async (id: string): Promise<void> => {
     await api.delete(`/vehicles/${id}`);
+  },
+};
+
+// CarAPI vehicle data service
+export const carApiService = {
+  getYears: async (): Promise<{ data: Array<{ year: number }> }> => {
+    const response = await api.get('/vehicles/carapi/years');
+    return response.data;
+  },
+  
+  getMakes: async (year: number): Promise<{ data: Array<{ make: string; make_id: number }> }> => {
+    const response = await api.get(`/vehicles/carapi/makes?year=${year}`);
+    return response.data;
+  },
+  
+  getModels: async (year: number, make: string): Promise<{ data: Array<{ model: string; model_id: number }> }> => {
+    const response = await api.get(`/vehicles/carapi/models?year=${year}&make=${encodeURIComponent(make)}`);
+    return response.data;
+  },
+  
+  getTrims: async (year: number, make: string, model: string): Promise<{ data: Array<{ trim: string; trim_id: number }> }> => {
+    const response = await api.get(`/vehicles/carapi/trims?year=${year}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
+    return response.data;
   },
 };
 

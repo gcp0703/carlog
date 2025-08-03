@@ -1,19 +1,30 @@
 export interface User {
   id: string;
   email: string;
+  phone_number?: string;
   zip_code?: string;
-  has_garage?: boolean;
-  usage_pattern?: string;
+  email_notifications_enabled?: boolean;
+  sms_notifications_enabled?: boolean;
+  account_active?: boolean;
 }
 
 export interface Vehicle {
   id: string;
   owner_id: string;
-  make: string;
+  brand: string;
+  brand_id?: number;
   model: string;
+  model_id?: number;
   year: number;
+  trim?: string;
+  trim_id?: number;
+  zip_code?: string;
+  usage_pattern?: string;
+  usage_notes?: string;
   vin?: string;
   license_plate?: string;
+  license_country?: string;
+  license_state?: string;
   current_mileage?: number;
 }
 

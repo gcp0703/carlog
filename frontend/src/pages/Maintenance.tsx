@@ -8,6 +8,8 @@ const Maintenance: React.FC = () => {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [records, setRecords] = useState<MaintenanceRecord[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [newRecord, setNewRecord] = useState({
     service_type: '',
     mileage: 0,
@@ -22,25 +24,28 @@ const Maintenance: React.FC = () => {
       loadVehicle();
       loadRecords();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicleId]);
 
   const loadVehicle = async () => {
     if (!vehicleId) return;
     try {
+      setError(null);
       const data = await vehicleService.getById(vehicleId);
       setVehicle(data);
     } catch (error) {
-      console.error('Failed to load vehicle:', error);
+      setError('Failed to load vehicle information. Please try again.');
     }
   };
 
   const loadRecords = async () => {
     if (!vehicleId) return;
     try {
+      setError(null);
       const data = await maintenanceService.getRecords(vehicleId);
       setRecords(data);
     } catch (error) {
-      console.error('Failed to load maintenance records:', error);
+      setError('Failed to load maintenance records. Please try again.');
     }
   };
 
@@ -49,6 +54,8 @@ const Maintenance: React.FC = () => {
     if (!vehicleId) return;
     
     try {
+      setError(null);
+      setLoading(true);
       await maintenanceService.createRecord({
         ...newRecord,
         vehicle_id: vehicleId,
@@ -64,7 +71,9 @@ const Maintenance: React.FC = () => {
       });
       loadRecords();
     } catch (error) {
-      console.error('Failed to add maintenance record:', error);
+      setError('Failed to add maintenance record. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,8 +83,36 @@ const Maintenance: React.FC = () => {
 
   return (
     <div className="container">
+      {error && (
+        <div style={{ 
+          backgroundColor: '#f8d7da', 
+          color: '#721c24', 
+          padding: '12px', 
+          marginBottom: '20px', 
+          borderRadius: '4px', 
+          border: '1px solid #f5c6cb',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span>{error}</span>
+          <button 
+            onClick={() => setError(null)} 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#721c24', 
+              cursor: 'pointer', 
+              fontSize: '18px',
+              padding: '0 5px'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1>Maintenance Records - {vehicle.year} {vehicle.make} {vehicle.model}</h1>
+        <h1>Maintenance Records - {vehicle.year} {vehicle.brand} {vehicle.model}</h1>
         <div>
           <Link to="/vehicles">
             <button className="btn btn-secondary" style={{ marginRight: '10px' }}>
@@ -139,10 +176,10 @@ const Maintenance: React.FC = () => {
             />
           </div>
           <div style={{ marginTop: '15px' }}>
-            <button type="submit" className="btn" style={{ marginRight: '10px' }}>
-              Save Record
+            <button type="submit" className="btn" style={{ marginRight: '10px' }} disabled={loading}>
+              {loading ? 'Saving...' : 'Save Record'}
             </button>
-            <button type="button" onClick={() => setShowAddForm(false)} className="btn btn-secondary">
+            <button type="button" onClick={() => setShowAddForm(false)} className="btn btn-secondary" disabled={loading}>
               Cancel
             </button>
           </div>

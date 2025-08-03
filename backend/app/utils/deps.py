@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Generator
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.core import security
 from app.core.config import settings
+from app.models.user import User
 from app.services.neo4j_service import neo4j_service
 
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
@@ -20,7 +21,7 @@ def get_db() -> Generator:
         session.close()
 
 
-def get_current_user(token: str = Depends(reusable_oauth2)) -> str:
+async def get_current_user(token: str = Depends(reusable_oauth2)) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -36,4 +37,22 @@ def get_current_user(token: str = Depends(reusable_oauth2)) -> str:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    return user_email
+    
+    # Get the user from the database
+    user = await neo4j_service.get_user_by_email(user_email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    
+    # Return the User model (not UserInDB which includes password)
+    return User(
+        id=user.id,
+        email=user.email,
+        phone_number=user.phone_number,
+        zip_code=user.zip_code,
+        email_notifications_enabled=getattr(user, 'email_notifications_enabled', True),
+        sms_notifications_enabled=getattr(user, 'sms_notifications_enabled', True),
+        account_active=getattr(user, 'account_active', True)
+    )
