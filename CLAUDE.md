@@ -106,9 +106,9 @@ NEO4J_URI=bolt://docker:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=your-password
 SECRET_KEY=your-secret-key
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-TWILIO_PHONE_NUMBER=your-twilio-phone
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=your-twilio-phone-number
 ```
 
 ### Frontend
@@ -119,6 +119,7 @@ TWILIO_PHONE_NUMBER=your-twilio-phone
 - When running with Docker, Neo4j is accessible at hostname 'docker' from the backend container
 - Default connection: bolt://docker:7687
 - Use Neo4j Browser at http://localhost:7474 for database exploration
+- The neo4j instance in docker is my-neo4j
 
 ## SMS Integration
 
@@ -151,3 +152,22 @@ The SMS service uses Twilio and includes:
 
 - Always activate the virtual environment when claude starts
 - To activate the virtual environment, navigate to the backend directory and run: `source .venv/bin/activate`
+- The virtual environment for backend is in .venv
+
+## API Authentication Notes
+
+- For CarAPI calls You'll send a JSON request including your token and secret to authenticate to the API. The response will contain the JWT which you'll include in the HTTP Header of future requests. This JWT will last for several days, so there is no need request a new one each time.
+
+## External API Documentation
+
+- carapi docs are at https://carapi.app/docs/
+
+## Server Access
+
+### carlog.piprivate.net (linuxpub server)
+```bash
+ssh -i ~/.ssh/linuxpub_key.pem azureuser@carlog.piprivate.net
+```
+- **OS**: Ubuntu 24.04.2 LTS
+- **Internal IP**: 10.0.0.4
+- **Neo4j**: Version 2025.07.0 running on localhost:7687 (Bolt) and localhost:7474 (HTTP)
