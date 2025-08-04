@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { AuthTokens, User, Vehicle, MaintenanceRecord, MaintenanceSchedule } from '../types';
+import { AuthTokens, User, UserWithVehicleCount, Vehicle, MaintenanceRecord, MaintenanceSchedule } from '../types';
 
 // Utility function to extract error messages from API responses
 export const extractErrorMessage = (error: unknown): string => {
@@ -181,6 +181,21 @@ export const adminService = {
     created_at: string;
   }>> => {
     const response = await api.get(`/admin/claude-logs?limit=${limit}`);
+    return response.data;
+  },
+
+  getUsers: async (): Promise<UserWithVehicleCount[]> => {
+    const response = await api.get('/admin/users');
+    return response.data;
+  },
+
+  triggerReminders: async (): Promise<{
+    status: string;
+    sms_reminders_sent: number;
+    maintenance_notifications_sent: number;
+    triggered_by: string;
+  }> => {
+    const response = await api.post('/admin/trigger-reminders');
     return response.data;
   },
 };

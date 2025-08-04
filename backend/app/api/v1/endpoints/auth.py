@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,6 +25,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Update last_login timestamp
+    try:
+        await neo4j_service.update_user(user.id, {"last_login": datetime.utcnow()})
+    except Exception as e:
+        logger.warning(f"Failed to update last_login for user {user.id}: {e}")
+        # Continue login process even if last_login update fails
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
@@ -104,6 +111,12 @@ async def register(user_data: UserCreate) -> Any:
             zip_code=user_in_db.zip_code,
             email_notifications_enabled=user_in_db.email_notifications_enabled,
             sms_notifications_enabled=user_in_db.sms_notifications_enabled,
+            sms_notification_frequency=user_in_db.sms_notification_frequency,
+            maintenance_notification_frequency=user_in_db.maintenance_notification_frequency,
+            last_update_request=user_in_db.last_update_request,
+            last_maintenance_notification=user_in_db.last_maintenance_notification,
+            last_login=user_in_db.last_login,
+            role=user_in_db.role,
             account_active=user_in_db.account_active
         )
     except HTTPException:

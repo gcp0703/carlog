@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.api.dependencies import get_current_active_user
-from app.models.user import User
+from typing import List
+from app.api.dependencies import get_current_active_user, get_neo4j_service
+from app.models.user import User, UserWithVehicleCount
+from app.services.neo4j_service import Neo4jService
 from app.cron_scheduler import run_manual_reminder_check
 import logging
 
@@ -32,4 +34,42 @@ async def trigger_reminders(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to trigger reminders: {str(e)}"
+        )
+
+
+def check_admin_role(current_user: User = Depends(get_current_active_user)) -> User:
+    """Check if the current user has admin role"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized. Admin role required."
+        )
+    return current_user
+
+
+@router.get("/users", response_model=List[UserWithVehicleCount])
+async def list_users(
+    current_admin: User = Depends(check_admin_role),
+    neo4j_service: Neo4jService = Depends(get_neo4j_service)
+):
+    """
+    Get all users with their vehicle counts.
+    Only accessible to admin users.
+    """
+    try:
+        logger.info(f"Admin {current_admin.id} listing all users")
+        users_data = await neo4j_service.get_all_users_with_vehicle_count()
+        
+        # Convert to UserWithVehicleCount objects
+        users = []
+        for user_data in users_data:
+            users.append(UserWithVehicleCount(**user_data))
+        
+        return users
+        
+    except Exception as e:
+        logger.error(f"Error listing users: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve users: {str(e)}"
         )

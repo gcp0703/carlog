@@ -75,6 +75,8 @@ class Neo4jService:
                         maintenance_notification_frequency: $maintenance_notification_frequency,
                         last_update_request: $last_update_request,
                         last_maintenance_notification: $last_maintenance_notification,
+                        last_login: $last_login,
+                        role: $role,
                         account_active: $account_active
                     })
                     RETURN u
@@ -90,6 +92,8 @@ class Neo4jService:
                     maintenance_notification_frequency=user_data.maintenance_notification_frequency,
                     last_update_request=user_data.last_update_request.isoformat() if user_data.last_update_request else None,
                     last_maintenance_notification=user_data.last_maintenance_notification.isoformat() if user_data.last_maintenance_notification else None,
+                    last_login=user_data.last_login.isoformat() if user_data.last_login else None,
+                    role=user_data.role,
                     account_active=user_data.account_active
                 )
                 
@@ -109,6 +113,8 @@ class Neo4jService:
                         maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                         last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
                         last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                        last_login=datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                        role=node.get("role", "user"),
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -152,6 +158,8 @@ class Neo4jService:
                         maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                         last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
                         last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                        last_login=datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                        role=node.get("role", "user"),
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -187,6 +195,8 @@ class Neo4jService:
                     maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                     last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
                     last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                    last_login=datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                    role=node.get("role", "user"),
                     account_active=node.get("account_active", True)
                 )
             return None
@@ -202,7 +212,7 @@ class Neo4jService:
                 # Hash password if provided
                 set_clauses.append("u.hashed_password = $hashed_password")
                 params["hashed_password"] = get_password_hash(value)
-            elif field in ["last_update_request", "last_maintenance_notification"] and value is not None:
+            elif field in ["last_update_request", "last_maintenance_notification", "last_login"] and value is not None:
                 # Convert datetime to ISO format string
                 set_clauses.append(f"u.{field} = ${field}")
                 params[field] = value.isoformat() if isinstance(value, datetime) else value
@@ -236,6 +246,8 @@ class Neo4jService:
                     maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                     last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
                     last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                    last_login=datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                    role=node.get("role", "user"),
                     account_active=node.get("account_active", True)
                 )
             return None
@@ -271,6 +283,8 @@ class Neo4jService:
                         maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                         last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
                         last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                        last_login=datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                        role=node.get("role", "user"),
                         account_active=node.get("account_active", True)
                     ))
                 
@@ -281,6 +295,50 @@ class Neo4jService:
             return []
         except Exception as e:
             self.logger.error(f"Unexpected error retrieving active users: {e}")
+            return []
+    
+    async def get_all_users_with_vehicle_count(self) -> List[Dict[str, Any]]:
+        """Get all users with their vehicle counts"""
+        try:
+            with self.get_session() as session:
+                result = session.run(
+                    """
+                    MATCH (u:User)
+                    OPTIONAL MATCH (u)-[:OWNS]->(v:Vehicle)
+                    WITH u, COUNT(v) as vehicle_count
+                    RETURN u, vehicle_count
+                    ORDER BY u.email
+                    """
+                )
+                
+                users = []
+                for record in result:
+                    node = record["u"]
+                    user_data = {
+                        "id": node["id"],
+                        "email": node["email"],
+                        "phone_number": node.get("phone_number"),
+                        "zip_code": node.get("zip_code"),
+                        "email_notifications_enabled": node.get("email_notifications_enabled", True),
+                        "sms_notifications_enabled": node.get("sms_notifications_enabled", True),
+                        "sms_notification_frequency": node.get("sms_notification_frequency", "monthly"),
+                        "maintenance_notification_frequency": node.get("maintenance_notification_frequency", "quarterly"),
+                        "last_update_request": datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                        "last_maintenance_notification": datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                        "last_login": datetime.fromisoformat(node["last_login"]) if node.get("last_login") else None,
+                        "role": node.get("role", "user"),
+                        "account_active": node.get("account_active", True),
+                        "vehicle_count": record["vehicle_count"]
+                    }
+                    users.append(user_data)
+                
+                return users
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error retrieving users with vehicle count: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Unexpected error retrieving users with vehicle count: {e}")
             return []
 
     # Vehicle management methods

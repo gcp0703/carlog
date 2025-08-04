@@ -7,7 +7,13 @@ export interface User {
   sms_notifications_enabled?: boolean;
   sms_notification_frequency?: 'weekly' | 'monthly' | 'quarterly';
   maintenance_notification_frequency?: 'monthly' | 'quarterly' | 'annually';
+  last_login?: string;
+  role?: 'admin' | 'manager' | 'user';
   account_active?: boolean;
+}
+
+export interface UserWithVehicleCount extends User {
+  vehicle_count: number;
 }
 
 export interface Vehicle {

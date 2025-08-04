@@ -76,13 +76,15 @@ const Header: React.FC = () => {
             }}>
               Recommendations
             </Link>
-            <Link to="/admin" style={{ 
-              textDecoration: 'none', 
-              color: location.pathname.startsWith('/admin') ? '#4CAF50' : '#333',
-              fontWeight: location.pathname.startsWith('/admin') ? 'bold' : 'normal'
-            }}>
-              Admin
-            </Link>
+            {user.role === 'admin' && (
+              <Link to="/admin" style={{ 
+                textDecoration: 'none', 
+                color: location.pathname.startsWith('/admin') ? '#4CAF50' : '#333',
+                fontWeight: location.pathname.startsWith('/admin') ? 'bold' : 'normal'
+              }}>
+                Admin
+              </Link>
+            )}
             <Link to="/profile" style={{ 
               borderLeft: '1px solid #e0e0e0', 
               paddingLeft: '20px',

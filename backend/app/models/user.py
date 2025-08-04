@@ -13,6 +13,8 @@ class UserBase(BaseModel):
     maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = "quarterly"
     last_update_request: Optional[datetime] = None
     last_maintenance_notification: Optional[datetime] = None
+    last_login: Optional[datetime] = None
+    role: Optional[Literal["admin", "manager", "user"]] = "user"
     account_active: Optional[bool] = True
 
 
@@ -46,6 +48,8 @@ class UserUpdate(BaseModel):
     maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = None
     last_update_request: Optional[datetime] = None
     last_maintenance_notification: Optional[datetime] = None
+    last_login: Optional[datetime] = None
+    role: Optional[Literal["admin", "manager", "user"]] = None
     account_active: Optional[bool] = None
     password: Optional[str] = None
 
@@ -62,3 +66,7 @@ class User(UserInDBBase):
 
 class UserInDB(UserInDBBase):
     hashed_password: str
+
+
+class UserWithVehicleCount(User):
+    vehicle_count: int = 0
