@@ -12,6 +12,8 @@ import Recommendations from './pages/Recommendations';
 import Unsubscribe from './pages/Unsubscribe';
 import SmsOptOut from './pages/SmsOptOut';
 import Admin from './pages/Admin';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
 import AILogs from './pages/AILogs';
 import { AuthProvider } from './components/auth/AuthContext';
 import PrivateRoute from './components/auth/PrivateRoute';
@@ -74,6 +76,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <Admin />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <PrivateRoute>
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <PrivateRoute>
+                  <AdminUsers />
                 </PrivateRoute>
               }
             />

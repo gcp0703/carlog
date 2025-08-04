@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from app.utils.deps import get_current_user
 from app.models.user import User, UserWithVehicleCount
+from app.models.recommendation import ClaudeAPILog
 from app.services.neo4j_service import neo4j_service
 from app.cron_scheduler import run_manual_reminder_check
 import logging
@@ -71,4 +72,26 @@ async def list_users(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve users: {str(e)}"
+        )
+
+
+@router.get("/claude-logs", response_model=List[ClaudeAPILog])
+async def get_claude_logs(
+    limit: int = 100,
+    current_admin: User = Depends(check_admin_role)
+):
+    """
+    Get Claude API logs.
+    Only accessible to admin users.
+    """
+    try:
+        logger.info(f"Admin {current_admin.id} retrieving Claude API logs")
+        logs = await neo4j_service.get_claude_api_logs(limit=limit)
+        return logs
+        
+    except Exception as e:
+        logger.error(f"Error retrieving Claude logs: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve Claude logs: {str(e)}"
         )

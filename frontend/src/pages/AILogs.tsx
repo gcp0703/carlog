@@ -51,7 +51,12 @@ const AILogs: React.FC = () => {
   if (loading) {
     return (
       <div className="container">
-        <h1>AI Communication Logs</h1>
+        <div style={{ marginBottom: '20px' }}>
+          <Link to="/admin" style={{ color: '#2196F3', textDecoration: 'none' }}>
+            ← Back to Admin Dashboard
+          </Link>
+        </div>
+        <h1>Prior Anthropic Calls</h1>
         <p>Loading logs...</p>
       </div>
     );
@@ -60,27 +65,29 @@ const AILogs: React.FC = () => {
   if (error) {
     return (
       <div className="container">
-        <h1>AI Communication Logs</h1>
+        <div style={{ marginBottom: '20px' }}>
+          <Link to="/admin" style={{ color: '#2196F3', textDecoration: 'none' }}>
+            ← Back to Admin Dashboard
+          </Link>
+        </div>
+        <h1>Prior Anthropic Calls</h1>
         <p style={{ color: '#d32f2f' }}>{error}</p>
-        <Link to="/admin">
-          <button className="btn btn-secondary">Back to Admin</button>
-        </Link>
       </div>
     );
   }
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px' }}>
-        <div>
-          <h1 style={{ margin: 0 }}>AI Communication Logs</h1>
-          <p style={{ margin: '5px 0 0 0', color: '#666' }}>
-            All requests and responses from Claude AI API
-          </p>
-        </div>
-        <Link to="/admin">
-          <button className="btn btn-secondary">Back to Admin</button>
+      <div style={{ marginBottom: '20px' }}>
+        <Link to="/admin" style={{ color: '#2196F3', textDecoration: 'none' }}>
+          ← Back to Admin Dashboard
         </Link>
+      </div>
+      <div style={{ marginBottom: '30px' }}>
+        <h1 style={{ margin: '0 0 5px 0' }}>Prior Anthropic Calls</h1>
+        <p style={{ margin: '0', color: '#666' }}>
+          Historical API requests and responses from Claude AI for maintenance recommendations
+        </p>
       </div>
 
       {logs.length === 0 ? (

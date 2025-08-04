@@ -183,37 +183,37 @@ const Recommendations: React.FC = () => {
         padding: '20px',
         marginBottom: '20px'
       }}>
-        <h3 style={{ margin: '0 0 15px 0', color: '#1976d2' }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#1976d2', textAlign: 'center' }}>
           What Our AI Analyzes
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-          <div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', textAlign: 'left' }}>
+          <div style={{ textAlign: 'left' }}>
             <strong style={{ color: '#1565c0' }}>Immediate Needs:</strong>
-            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Urgent maintenance items</li>
               <li>Safety-critical services</li>
               <li>Overdue maintenance</li>
             </ul>
           </div>
-          <div>
+          <div style={{ textAlign: 'left' }}>
             <strong style={{ color: '#1565c0' }}>Scheduled Services:</strong>
-            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Upcoming maintenance by mileage</li>
               <li>Time-based service intervals</li>
               <li>Manufacturer recommendations</li>
             </ul>
           </div>
-          <div>
+          <div style={{ textAlign: 'left' }}>
             <strong style={{ color: '#1565c0' }}>Model-Specific Insights:</strong>
-            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Known issues for your model</li>
               <li>Preventive measures</li>
               <li>Recall information</li>
             </ul>
           </div>
-          <div>
+          <div style={{ textAlign: 'left' }}>
             <strong style={{ color: '#1565c0' }}>Cost Estimates:</strong>
-            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px', textAlign: 'left' }}>
               <li>Service cost ranges</li>
               <li>Priority-based budgeting</li>
               <li>Location-specific pricing</li>
