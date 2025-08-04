@@ -6,6 +6,7 @@ from app.models.vehicle import Vehicle, VehicleCreate, VehicleUpdate
 from app.models.user import User
 from app.services.neo4j_service import neo4j_service
 from app.services.carapi_service import carapi_service
+from app.services.claude_service import claude_service
 from app.utils.deps import get_current_user
 
 router = APIRouter()
@@ -155,4 +156,64 @@ async def get_trims(year: int, make: str, model: str, current_user: User = Depen
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch trims for {year} {make} {model}: {str(e)}"
+        )
+
+
+@router.get("/{vehicle_id}/recommendations")
+async def get_vehicle_recommendations(vehicle_id: str, current_user: User = Depends(get_current_user)) -> Any:
+    """Get AI-powered maintenance recommendations for a specific vehicle"""
+    try:
+        # Get the vehicle
+        vehicle = await neo4j_service.get_vehicle_by_id(vehicle_id, current_user.id)
+        if not vehicle:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Vehicle not found"
+            )
+        
+        # Check for cached recommendation first
+        cached_recommendation = await neo4j_service.get_cached_recommendation(vehicle_id)
+        if cached_recommendation:
+            return {
+                "vehicle_id": vehicle_id,
+                "recommendations": cached_recommendation.recommendations,
+                "cached": True,
+                "generated_at": cached_recommendation.created_at.isoformat()
+            }
+        
+        # Get maintenance records
+        maintenance_records = await neo4j_service.get_maintenance_records(vehicle_id)
+        maintenance_count = len(maintenance_records)
+        
+        # Get recommendations from Claude
+        recommendations, prompt, raw_response = await claude_service.get_maintenance_recommendations(vehicle, maintenance_records)
+        
+        # Save the API log
+        await neo4j_service.save_claude_api_log(
+            vehicle_id=vehicle_id,
+            request_prompt=prompt,
+            response_text=raw_response,
+            model_used="claude-3-5-sonnet-20241022"
+        )
+        
+        # Save the recommendation to cache
+        saved_recommendation = await neo4j_service.save_recommendation(
+            vehicle_id=vehicle_id,
+            recommendations=recommendations,
+            vehicle_mileage=vehicle.current_mileage or 0,
+            maintenance_count=maintenance_count
+        )
+        
+        return {
+            "vehicle_id": vehicle_id,
+            "recommendations": recommendations,
+            "cached": False,
+            "generated_at": saved_recommendation.created_at.isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get recommendations: {str(e)}"
         )

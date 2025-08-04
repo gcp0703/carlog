@@ -1,5 +1,6 @@
 import logging
 import uuid
+from datetime import datetime
 from typing import Optional, Dict, Any, List
 from neo4j import GraphDatabase
 from neo4j.exceptions import Neo4jError, ConstraintError
@@ -8,6 +9,8 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models.user import UserCreate, User, UserInDB
 from app.models.vehicle import VehicleCreate, Vehicle, VehicleUpdate
+from app.models.maintenance import Maintenance
+from app.models.recommendation import Recommendation, RecommendationCreate, ClaudeAPILog
 
 
 class Neo4jService:
@@ -470,6 +473,273 @@ class Neo4jService:
         except Exception as e:
             self.logger.error(f"Unexpected error deleting vehicle {vehicle_id}: {e}")
             raise Exception(f"Failed to delete vehicle: {str(e)}")
+
+    async def get_maintenance_records(self, vehicle_id: str) -> List[Maintenance]:
+        """Get all maintenance records for a vehicle"""
+        try:
+            with self.get_session() as session:
+                result = session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})-[:HAS_MAINTENANCE]->(m:Maintenance)
+                    RETURN m
+                    ORDER BY m.service_date DESC
+                    """,
+                    vehicle_id=vehicle_id
+                )
+                
+                records = []
+                for row in result:
+                    node = row["m"]
+                    record = Maintenance(
+                        id=node["id"],
+                        vehicle_id=vehicle_id,
+                        service_type=node["service_type"],
+                        mileage=node["mileage"],
+                        service_date=node["service_date"],
+                        description=node.get("description"),
+                        cost=node.get("cost"),
+                        service_provider=node.get("service_provider"),
+                        created_at=node["created_at"]
+                    )
+                    records.append(record)
+                
+                return records
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error retrieving maintenance records: {e}")
+            raise Exception(f"Database error: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error retrieving maintenance records: {e}")
+            raise Exception(f"Failed to retrieve maintenance records: {str(e)}")
+
+    async def create_maintenance_record(self, record: Maintenance) -> None:
+        """Create a new maintenance record"""
+        try:
+            with self.get_session() as session:
+                session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})
+                    CREATE (m:Maintenance {
+                        id: $id,
+                        service_type: $service_type,
+                        mileage: $mileage,
+                        service_date: $service_date,
+                        description: $description,
+                        cost: $cost,
+                        service_provider: $service_provider,
+                        created_at: $created_at
+                    })
+                    CREATE (v)-[:HAS_MAINTENANCE]->(m)
+                    """,
+                    vehicle_id=record.vehicle_id,
+                    id=record.id,
+                    service_type=record.service_type,
+                    mileage=record.mileage,
+                    service_date=str(record.service_date),
+                    description=record.description,
+                    cost=record.cost,
+                    service_provider=record.service_provider,
+                    created_at=record.created_at.isoformat()
+                )
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error creating maintenance record: {e}")
+            raise Exception(f"Database error: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error creating maintenance record: {e}")
+            raise Exception(f"Failed to create maintenance record: {str(e)}")
+
+    async def update_vehicle_mileage_if_higher(self, vehicle_id: str, mileage: int) -> None:
+        """Update vehicle mileage if the provided mileage is higher than current"""
+        try:
+            with self.get_session() as session:
+                session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})
+                    WHERE v.current_mileage IS NULL OR v.current_mileage < $mileage
+                    SET v.current_mileage = $mileage
+                    """,
+                    vehicle_id=vehicle_id,
+                    mileage=mileage
+                )
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error updating vehicle mileage: {e}")
+            raise Exception(f"Database error: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error updating vehicle mileage: {e}")
+            raise Exception(f"Failed to update vehicle mileage: {str(e)}")
+
+    async def get_cached_recommendation(self, vehicle_id: str) -> Optional[Recommendation]:
+        """Get cached recommendation for a vehicle if it's still valid"""
+        try:
+            with self.get_session() as session:
+                # Get vehicle's current mileage and maintenance count
+                vehicle_result = session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})
+                    OPTIONAL MATCH (v)-[:HAS_MAINTENANCE]->(m:Maintenance)
+                    RETURN v.current_mileage as current_mileage, count(m) as maintenance_count
+                    """,
+                    vehicle_id=vehicle_id
+                )
+                
+                vehicle_data = vehicle_result.single()
+                if not vehicle_data:
+                    return None
+                
+                current_mileage = vehicle_data["current_mileage"] or 0
+                maintenance_count = vehicle_data["maintenance_count"]
+                
+                # Get cached recommendation
+                result = session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})-[:HAS_RECOMMENDATION]->(r:Recommendation)
+                    WHERE r.vehicle_mileage_at_generation = $current_mileage 
+                    AND r.maintenance_count_at_generation = $maintenance_count
+                    RETURN r
+                    ORDER BY r.created_at DESC
+                    LIMIT 1
+                    """,
+                    vehicle_id=vehicle_id,
+                    current_mileage=current_mileage,
+                    maintenance_count=maintenance_count
+                )
+                
+                record = result.single()
+                if record:
+                    node = record["r"]
+                    return Recommendation(
+                        id=node["id"],
+                        vehicle_id=node["vehicle_id"],
+                        recommendations=node["recommendations"],
+                        vehicle_mileage_at_generation=node["vehicle_mileage_at_generation"],
+                        maintenance_count_at_generation=node["maintenance_count_at_generation"],
+                        created_at=datetime.fromisoformat(node["created_at"]),
+                        updated_at=datetime.fromisoformat(node["updated_at"])
+                    )
+                return None
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error retrieving cached recommendation: {e}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Unexpected error retrieving cached recommendation: {e}")
+            return None
+
+    async def save_recommendation(self, vehicle_id: str, recommendations: str, 
+                                vehicle_mileage: int, maintenance_count: int) -> Recommendation:
+        """Save a new recommendation to cache"""
+        try:
+            recommendation_id = str(uuid.uuid4())
+            now = datetime.utcnow()
+            
+            with self.get_session() as session:
+                session.run(
+                    """
+                    MATCH (v:Vehicle {id: $vehicle_id})
+                    CREATE (r:Recommendation {
+                        id: $id,
+                        vehicle_id: $vehicle_id,
+                        recommendations: $recommendations,
+                        vehicle_mileage_at_generation: $vehicle_mileage,
+                        maintenance_count_at_generation: $maintenance_count,
+                        created_at: $created_at,
+                        updated_at: $updated_at
+                    })
+                    CREATE (v)-[:HAS_RECOMMENDATION]->(r)
+                    """,
+                    id=recommendation_id,
+                    vehicle_id=vehicle_id,
+                    recommendations=recommendations,
+                    vehicle_mileage=vehicle_mileage,
+                    maintenance_count=maintenance_count,
+                    created_at=now.isoformat(),
+                    updated_at=now.isoformat()
+                )
+                
+                return Recommendation(
+                    id=recommendation_id,
+                    vehicle_id=vehicle_id,
+                    recommendations=recommendations,
+                    vehicle_mileage_at_generation=vehicle_mileage,
+                    maintenance_count_at_generation=maintenance_count,
+                    created_at=now,
+                    updated_at=now
+                )
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error saving recommendation: {e}")
+            raise Exception(f"Database error: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error saving recommendation: {e}")
+            raise Exception(f"Failed to save recommendation: {str(e)}")
+
+    async def save_claude_api_log(self, vehicle_id: str, request_prompt: str, 
+                                 response_text: str, model_used: str, tokens_used: Optional[int] = None) -> None:
+        """Save Claude API request/response log"""
+        try:
+            log_id = str(uuid.uuid4())
+            created_at = datetime.utcnow()
+            
+            with self.get_session() as session:
+                session.run(
+                    """
+                    CREATE (l:ClaudeAPILog {
+                        id: $id,
+                        vehicle_id: $vehicle_id,
+                        request_prompt: $request_prompt,
+                        response_text: $response_text,
+                        model_used: $model_used,
+                        tokens_used: $tokens_used,
+                        created_at: $created_at
+                    })
+                    """,
+                    id=log_id,
+                    vehicle_id=vehicle_id,
+                    request_prompt=request_prompt,
+                    response_text=response_text,
+                    model_used=model_used,
+                    tokens_used=tokens_used,
+                    created_at=created_at.isoformat()
+                )
+                
+        except Exception as e:
+            self.logger.error(f"Error saving Claude API log: {e}")
+            # Don't raise - logging shouldn't break the main flow
+
+    async def get_claude_api_logs(self, limit: int = 100) -> List[ClaudeAPILog]:
+        """Get Claude API logs for admin interface"""
+        try:
+            with self.get_session() as session:
+                result = session.run(
+                    """
+                    MATCH (l:ClaudeAPILog)
+                    RETURN l
+                    ORDER BY l.created_at DESC
+                    LIMIT $limit
+                    """,
+                    limit=limit
+                )
+                
+                logs = []
+                for record in result:
+                    node = record["l"]
+                    logs.append(ClaudeAPILog(
+                        id=node["id"],
+                        vehicle_id=node["vehicle_id"],
+                        request_prompt=node["request_prompt"],
+                        response_text=node["response_text"],
+                        model_used=node["model_used"],
+                        tokens_used=node.get("tokens_used"),
+                        created_at=datetime.fromisoformat(node["created_at"])
+                    ))
+                
+                return logs
+                
+        except Exception as e:
+            self.logger.error(f"Error retrieving Claude API logs: {e}")
+            return []
 
 
 neo4j_service = Neo4jService()

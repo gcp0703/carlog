@@ -426,26 +426,35 @@ const Vehicles: React.FC = () => {
           </button>
         </div>
       )}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1>My Vehicles</h1>
-        <div>
-          <Link to="/dashboard">
-            <button className="btn btn-secondary" style={{ marginRight: '10px' }}>
-              Back to Dashboard
-            </button>
-          </Link>
-          <button 
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
+        <button 
             onClick={() => {
               setShowAddForm(!showAddForm);
               if (!showAddForm && user?.zip_code) {
                 setNewVehicle(prev => ({ ...prev, zip_code: user.zip_code || '' }));
               }
             }} 
-            className="btn"
+            style={{
+              background: '#4CAF50',
+              border: 'none',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              fontSize: '24px',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#45a049'}
+            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#4CAF50'}
+            title="Add vehicle"
           >
-            Add Vehicle
+            +
           </button>
-        </div>
+        <h1>My Vehicles</h1>
       </header>
 
       {showAddForm && (
@@ -638,7 +647,7 @@ const Vehicles: React.FC = () => {
                       onChange={(e) => setNewVehicle({ ...newVehicle, license_state: e.target.value })}
                       style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
                     >
-                      <option value="">Select {newVehicle.license_country === 'Canada' ? 'province' : 'state'}</option>
+                      <option value="">{newVehicle.license_country === 'Canada' ? 'Province' : 'State'}</option>
                       {statesByCountry[newVehicle.license_country]?.map(state => (
                         <option key={state.code} value={state.code}>
                           {state.code} - {state.name}
@@ -714,6 +723,10 @@ const Vehicles: React.FC = () => {
               // Edit mode
               <div>
                 <h3>Edit Vehicle</h3>
+                <p style={{ margin: '5px 0 15px 0', color: '#666', fontSize: '16px' }}>
+                  {vehicle.year} {vehicle.brand} {vehicle.model}
+                  {vehicle.trim && ` ${vehicle.trim}`}
+                </p>
                 <div style={{ display: 'grid', gap: '15px', marginTop: '15px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -791,7 +804,7 @@ const Vehicles: React.FC = () => {
                             onChange={(e) => setEditingVehicle({ ...editingVehicle, license_state: e.target.value })}
                             style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
                           >
-                            <option value="">Select</option>
+                            <option value="">{editingVehicle.license_country === 'Canada' ? 'Province' : 'State'}</option>
                             {statesByCountry[editingVehicle.license_country]?.map(state => (
                               <option key={state.code} value={state.code}>
                                 {state.code}
@@ -863,29 +876,46 @@ const Vehicles: React.FC = () => {
             ) : (
               // View mode
               <>
-                <h3>
-                  {vehicle.year} {vehicle.brand} {vehicle.model}
-                  {vehicle.trim && ` ${vehicle.trim}`}
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <h3 style={{ margin: 0 }}>
+                    {vehicle.year} {vehicle.brand} {vehicle.model}
+                    {vehicle.trim && ` ${vehicle.trim}`}
+                  </h3>
+                  <button 
+                    onClick={() => handleEditClick(vehicle)} 
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      color: '#666',
+                      padding: '5px',
+                      borderRadius: '4px'
+                    }}
+                    onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#f0f0f0'}
+                    onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
+                    title="Edit vehicle"
+                  >
+                    ⚙️
+                  </button>
+                </div>
                 {vehicle.license_plate && (
                   <p><strong>License:</strong> {vehicle.license_state && `${vehicle.license_state} `}{vehicle.license_plate}{vehicle.license_country && vehicle.license_country !== 'USA' && ` (${vehicle.license_country})`}</p>
                 )}
                 {vehicle.current_mileage && <p><strong>Mileage:</strong> {vehicle.current_mileage.toLocaleString()} miles</p>}
                 {vehicle.zip_code && <p><strong>Location:</strong> {vehicle.zip_code}</p>}
-                {vehicle.usage_pattern && <p><strong>Usage:</strong> {vehicle.usage_pattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>}
                 {vehicle.usage_notes && <p><strong>Notes:</strong> {vehicle.usage_notes}</p>}
                 <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
                   <Link to={`/maintenance/${vehicle.id}`}>
                     <button className="btn">
-                      View Maintenance
+                      Maintenance Records
                     </button>
                   </Link>
-                  <button 
-                    onClick={() => handleEditClick(vehicle)} 
-                    className="btn btn-secondary"
-                  >
-                    Edit
-                  </button>
+                  <Link to={`/recommendations?vehicle=${vehicle.id}`}>
+                    <button className="btn btn-secondary">
+                      Recommendations
+                    </button>
+                  </Link>
                 </div>
               </>
             )}

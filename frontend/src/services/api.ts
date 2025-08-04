@@ -135,6 +135,16 @@ export const vehicleService = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/vehicles/${id}`);
   },
+  
+  getRecommendations: async (vehicleId: string): Promise<{ 
+    vehicle_id: string; 
+    recommendations: string;
+    cached: boolean;
+    generated_at: string;
+  }> => {
+    const response = await api.get(`/vehicles/${vehicleId}/recommendations`);
+    return response.data;
+  },
 };
 
 // CarAPI vehicle data service
@@ -156,6 +166,21 @@ export const carApiService = {
   
   getTrims: async (year: number, make: string, model: string): Promise<{ data: Array<{ trim: string; trim_id: number }> }> => {
     const response = await api.get(`/vehicles/carapi/trims?year=${year}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
+    return response.data;
+  },
+};
+
+export const adminService = {
+  getClaudeLogs: async (limit: number = 100): Promise<Array<{
+    id: string;
+    vehicle_id: string;
+    request_prompt: string;
+    response_text: string;
+    model_used: string;
+    tokens_used: number | null;
+    created_at: string;
+  }>> => {
+    const response = await api.get(`/admin/claude-logs?limit=${limit}`);
     return response.data;
   },
 };

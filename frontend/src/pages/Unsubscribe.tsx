@@ -203,7 +203,7 @@ const Unsubscribe: React.FC = () => {
             )}
 
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              <Link to="/dashboard">
+              <Link to="/vehicles">
                 <button 
                   type="button" 
                   className="btn btn-secondary"

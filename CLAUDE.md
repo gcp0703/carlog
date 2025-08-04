@@ -171,3 +171,8 @@ ssh -i ~/.ssh/linuxpub_key.pem azureuser@carlog.piprivate.net
 - **OS**: Ubuntu 24.04.2 LTS
 - **Internal IP**: 10.0.0.4
 - **Neo4j**: Version 2025.07.0 running on localhost:7687 (Bolt) and localhost:7474 (HTTP)
+```
+
+## Development Memories
+- test after making changes
+- always test compilation after changes

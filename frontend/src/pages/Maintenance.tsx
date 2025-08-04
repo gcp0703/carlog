@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { MaintenanceRecord, Vehicle } from '../types';
 import { maintenanceService, vehicleService } from '../services/api';
 
@@ -111,18 +111,30 @@ const Maintenance: React.FC = () => {
           </button>
         </div>
       )}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1>Maintenance Records - {vehicle.year} {vehicle.brand} {vehicle.model}</h1>
-        <div>
-          <Link to="/vehicles">
-            <button className="btn btn-secondary" style={{ marginRight: '10px' }}>
-              Back to Vehicles
-            </button>
-          </Link>
-          <button onClick={() => setShowAddForm(!showAddForm)} className="btn">
-            Add Record
+      <header style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+        <button 
+            onClick={() => setShowAddForm(!showAddForm)} 
+            style={{
+              background: '#4CAF50',
+              border: 'none',
+              borderRadius: '50%',
+              width: '50px',
+              height: '50px',
+              fontSize: '24px',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = '#45a049'}
+            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = '#4CAF50'}
+            title="Add maintenance record"
+          >
+            +
           </button>
-        </div>
+        <h1>Maintenance Records - {vehicle.year} {vehicle.brand} {vehicle.model}</h1>
       </header>
 
       {showAddForm && (

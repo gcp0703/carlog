@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
+import logo from '../images/logo.png';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +16,7 @@ const Login: React.FC = () => {
     
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/vehicles');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password');
     }
@@ -23,7 +24,10 @@ const Login: React.FC = () => {
 
   return (
     <div className="container">
-      <h1>Login to CarLog</h1>
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <img src={logo} alt="CarLog Logo" style={{ height: '80px', marginBottom: '20px' }} />
+        <h1>Login to CarLog</h1>
+      </div>
       <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
         <div style={{ marginBottom: '15px' }}>
           <input

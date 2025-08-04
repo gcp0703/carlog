@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/auth/AuthContext';
+import logo from '../images/logo.png';
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ const Register: React.FC = () => {
     
     try {
       await register(email, password, phoneNumber);
-      navigate('/profile');
+      navigate('/vehicles');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     }
@@ -35,7 +36,10 @@ const Register: React.FC = () => {
 
   return (
     <div className="container">
-      <h1>Register for CarLog</h1>
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <img src={logo} alt="CarLog Logo" style={{ height: '80px', marginBottom: '20px' }} />
+        <h1>Register for CarLog</h1>
+      </div>
       <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
         <div style={{ marginBottom: '15px' }}>
           <input

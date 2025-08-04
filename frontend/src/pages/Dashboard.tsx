@@ -5,7 +5,7 @@ import { vehicleService } from '../services/api';
 import { Vehicle } from '../types';
 
 const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
         setVehicles(vehicleData);
       } catch (error) {
         setVehiclesError('Failed to load vehicles');
-        console.error('Error fetching vehicles:', error);
+        // Error is already displayed to user via setVehiclesError
       } finally {
         setVehiclesLoading(false);
       }
@@ -30,17 +30,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <h1 style={{ cursor: 'pointer' }}>CarLog Dashboard</h1>
-        </Link>
-        <div>
-          <span style={{ marginRight: '20px' }}>Welcome, {user?.email}</span>
-          <button onClick={logout} className="btn btn-secondary">
-            Logout
-          </button>
-        </div>
-      </header>
+      <h1>Dashboard</h1>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         <div style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', minHeight: '250px' }}>

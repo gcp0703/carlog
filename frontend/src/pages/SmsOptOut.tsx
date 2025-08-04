@@ -241,11 +241,6 @@ const SmsOptOut: React.FC = () => {
               </div>
             )}
 
-            <Link to="/dashboard">
-              <button className="btn btn-secondary" style={{ minWidth: '120px' }}>
-                Back to Dashboard
-              </button>
-            </Link>
           </div>
         )}
 

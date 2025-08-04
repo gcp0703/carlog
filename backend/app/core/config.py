@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     CARAPI_TOKEN: str = ""
     CARAPI_SECRET: str = ""
     CARAPI_BASE_URL: str = "https://carapi.app/api"
+    
+    # Claude API Configuration
+    CLAUDE_API_KEY: str = ""
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 

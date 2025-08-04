@@ -96,9 +96,9 @@ const Profile: React.FC = () => {
       
       setSuccessMessage('Profile updated successfully!');
       
-      // Navigate to dashboard after successful update
+      // Navigate to vehicles after successful update
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/vehicles');
       }, 500);
     } catch (err) {
       setError('Failed to update profile. Please try again.');
@@ -273,7 +273,7 @@ const Profile: React.FC = () => {
           
           <button 
             type="button" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/vehicles')}
             style={{
               flex: 1,
               padding: '10px',

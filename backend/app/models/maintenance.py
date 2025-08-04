@@ -1,9 +1,11 @@
 from datetime import date, datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class MaintenanceBase(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    
     vehicle_id: str
     service_type: str
     mileage: int
@@ -18,6 +20,8 @@ class MaintenanceCreate(MaintenanceBase):
 
 
 class MaintenanceUpdate(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    
     service_type: Optional[str] = None
     mileage: Optional[int] = None
     service_date: Optional[date] = None
@@ -29,9 +33,8 @@ class MaintenanceUpdate(BaseModel):
 class MaintenanceInDBBase(MaintenanceBase):
     id: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
 
 class Maintenance(MaintenanceInDBBase):
