@@ -11,8 +11,7 @@ from app.cron_scheduler import scheduler
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -43,8 +42,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={
             "detail": exc.errors(),
             "message": "Validation error",
-            "url": str(request.url)
-        }
+            "url": str(request.url),
+        },
     )
 
 
@@ -57,8 +56,8 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
         content={
             "detail": exc.errors(),
             "message": "Data validation error",
-            "url": str(request.url)
-        }
+            "url": str(request.url),
+        },
     )
 
 
@@ -71,8 +70,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content={
             "detail": exc.detail,
             "status_code": exc.status_code,
-            "url": str(request.url)
-        }
+            "url": str(request.url),
+        },
     )
 
 
@@ -85,8 +84,8 @@ async def general_exception_handler(request: Request, exc: Exception):
         content={
             "detail": "Internal server error",
             "error_type": type(exc).__name__,
-            "url": str(request.url)
-        }
+            "url": str(request.url),
+        },
     )
 
 

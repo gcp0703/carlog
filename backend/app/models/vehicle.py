@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class VehicleBase(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
-    
+
     brand: str
     brand_id: Optional[int] = None
     model: str
@@ -28,7 +28,7 @@ class VehicleCreate(VehicleBase):
 
 class VehicleUpdate(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
-    
+
     brand: Optional[str] = None
     brand_id: Optional[int] = None
     model: Optional[str] = None
@@ -49,7 +49,7 @@ class VehicleUpdate(BaseModel):
 class VehicleInDBBase(VehicleBase):
     id: str
     owner_id: str
-    
+
     model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
 

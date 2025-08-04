@@ -174,5 +174,24 @@ ssh -i ~/.ssh/linuxpub_key.pem azureuser@carlog.piprivate.net
 ```
 
 ## Development Memories
-- test after making changes
+- test after making changes using test-suite-executor
 - always test compilation after changes
+- always use code-architect for writing code
+- always use functional-issue-analyzer when trying to understand why a complex functional (non-syntactic) issue is occurring
+- always use data-scientist when trying to determine the best approach for utilizing AI or machine learning or optimizing existing predictive analytics or anomaly detection
+- always use neo4j-fullstack-architect when making complicated decisions about database structure, updating, or optimization
+
+## Pre-Push Code Quality Checks
+- Before pushing code to the git remote, perform the following:
+  # Backend checks
+  cd backend
+  python -m black app/
+  python -m flake8 app/
+  python -m mypy app/
+  python -m pytest
+
+  # Frontend checks
+  cd frontend
+  npm run type-check
+  npm run lint
+  npm test

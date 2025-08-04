@@ -51,7 +51,7 @@ jobs:
         safety check --json > safety-report.json || true
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: python-security-reports
@@ -95,7 +95,7 @@ jobs:
         npm audit --json > npm-audit-report.json || true
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: javascript-security-reports

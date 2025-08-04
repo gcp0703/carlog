@@ -37,7 +37,7 @@ async def get_current_user(token: str = Depends(reusable_oauth2)) -> User:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    
+
     # Get the user from the database
     user = await neo4j_service.get_user_by_email(user_email)
     if user is None:
@@ -45,20 +45,26 @@ async def get_current_user(token: str = Depends(reusable_oauth2)) -> User:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Return the User model (not UserInDB which includes password)
     return User(
         id=user.id,
         email=user.email,
         phone_number=user.phone_number,
         zip_code=user.zip_code,
-        email_notifications_enabled=getattr(user, 'email_notifications_enabled', True),
-        sms_notifications_enabled=getattr(user, 'sms_notifications_enabled', True),
-        sms_notification_frequency=getattr(user, 'sms_notification_frequency', 'monthly'),
-        maintenance_notification_frequency=getattr(user, 'maintenance_notification_frequency', 'quarterly'),
-        last_update_request=getattr(user, 'last_update_request', None),
-        last_maintenance_notification=getattr(user, 'last_maintenance_notification', None),
-        last_login=getattr(user, 'last_login', None),
-        role=getattr(user, 'role', 'user'),
-        account_active=getattr(user, 'account_active', True)
+        email_notifications_enabled=getattr(user, "email_notifications_enabled", True),
+        sms_notifications_enabled=getattr(user, "sms_notifications_enabled", True),
+        sms_notification_frequency=getattr(
+            user, "sms_notification_frequency", "monthly"
+        ),
+        maintenance_notification_frequency=getattr(
+            user, "maintenance_notification_frequency", "quarterly"
+        ),
+        last_update_request=getattr(user, "last_update_request", None),
+        last_maintenance_notification=getattr(
+            user, "last_maintenance_notification", None
+        ),
+        last_login=getattr(user, "last_login", None),
+        role=getattr(user, "role", "user"),
+        account_active=getattr(user, "account_active", True),
     )

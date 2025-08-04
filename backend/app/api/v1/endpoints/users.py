@@ -17,23 +17,25 @@ async def read_user_me(current_user: User = Depends(get_current_user)) -> Any:
 
 @router.put("/me", response_model=User)
 async def update_user_me(
-    user_update: UserUpdate, 
-    current_user: User = Depends(get_current_user)
+    user_update: UserUpdate, current_user: User = Depends(get_current_user)
 ) -> Any:
     """Update current user information"""
     # Convert to dict and exclude None values
-    update_data = {k: v for k, v in user_update.model_dump(exclude_unset=True).items() if v is not None}
-    
+    update_data = {
+        k: v
+        for k, v in user_update.model_dump(exclude_unset=True).items()
+        if v is not None
+    }
+
     if not update_data:
         return current_user
-    
+
     updated_user = await neo4j_service.update_user(current_user.id, update_data)
     if not updated_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return updated_user
 
 
@@ -48,15 +50,13 @@ async def delete_user_me(current_user: User = Depends(get_current_user)) -> Any:
 async def unsubscribe_user(current_user: User = Depends(get_current_user)) -> Any:
     """Unsubscribe user from the service (deactivate account)"""
     updated_user = await neo4j_service.update_user(
-        current_user.id, 
-        {"account_active": False, "sms_notifications_enabled": False}
+        current_user.id, {"account_active": False, "sms_notifications_enabled": False}
     )
     if not updated_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return {"message": "Successfully unsubscribed from CarLog service"}
 
 
@@ -64,15 +64,13 @@ async def unsubscribe_user(current_user: User = Depends(get_current_user)) -> An
 async def sms_opt_out(current_user: User = Depends(get_current_user)) -> Any:
     """Opt out of SMS notifications only"""
     updated_user = await neo4j_service.update_user(
-        current_user.id, 
-        {"sms_notifications_enabled": False}
+        current_user.id, {"sms_notifications_enabled": False}
     )
     if not updated_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return {"message": "Successfully opted out of SMS notifications"}
 
 
@@ -82,17 +80,15 @@ async def sms_opt_in(current_user: User = Depends(get_current_user)) -> Any:
     if not current_user.phone_number:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Phone number required to enable SMS notifications"
+            detail="Phone number required to enable SMS notifications",
         )
-    
+
     updated_user = await neo4j_service.update_user(
-        current_user.id, 
-        {"sms_notifications_enabled": True}
+        current_user.id, {"sms_notifications_enabled": True}
     )
     if not updated_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return {"message": "Successfully opted in to SMS notifications"}

@@ -9,8 +9,12 @@ class UserBase(BaseModel):
     zip_code: Optional[str] = None
     email_notifications_enabled: Optional[bool] = True
     sms_notifications_enabled: Optional[bool] = True
-    sms_notification_frequency: Optional[Literal["weekly", "monthly", "quarterly"]] = "monthly"
-    maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = "quarterly"
+    sms_notification_frequency: Optional[
+        Literal["weekly", "monthly", "quarterly"]
+    ] = "monthly"
+    maintenance_notification_frequency: Optional[
+        Literal["monthly", "quarterly", "annually"]
+    ] = "quarterly"
     last_update_request: Optional[datetime] = None
     last_maintenance_notification: Optional[datetime] = None
     last_login: Optional[datetime] = None
@@ -19,22 +23,24 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=6, description="Password must be at least 6 characters long")
-    
-    @field_validator('password')
+    password: str = Field(
+        ..., min_length=6, description="Password must be at least 6 characters long"
+    )
+
+    @field_validator("password")
     @classmethod
     def validate_password(cls, v):
         if not v or not v.strip():
-            raise ValueError('Password cannot be empty')
+            raise ValueError("Password cannot be empty")
         if len(v) < 6:
-            raise ValueError('Password must be at least 6 characters long')
+            raise ValueError("Password must be at least 6 characters long")
         return v
-    
-    @field_validator('email')
+
+    @field_validator("email")
     @classmethod
     def validate_email(cls, v):
         if not v or not str(v).strip():
-            raise ValueError('Email cannot be empty')
+            raise ValueError("Email cannot be empty")
         return v
 
 
@@ -44,8 +50,12 @@ class UserUpdate(BaseModel):
     zip_code: Optional[str] = None
     email_notifications_enabled: Optional[bool] = None
     sms_notifications_enabled: Optional[bool] = None
-    sms_notification_frequency: Optional[Literal["weekly", "monthly", "quarterly"]] = None
-    maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = None
+    sms_notification_frequency: Optional[
+        Literal["weekly", "monthly", "quarterly"]
+    ] = None
+    maintenance_notification_frequency: Optional[
+        Literal["monthly", "quarterly", "annually"]
+    ] = None
     last_update_request: Optional[datetime] = None
     last_maintenance_notification: Optional[datetime] = None
     last_login: Optional[datetime] = None

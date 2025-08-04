@@ -25,14 +25,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Update last_login timestamp
     try:
         await neo4j_service.update_user(user.id, {"last_login": datetime.utcnow()})
     except Exception as e:
         logger.warning(f"Failed to update last_login for user {user.id}: {e}")
         # Continue login process even if last_login update fails
-    
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
@@ -46,63 +46,71 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
 async def register(user_data: UserCreate) -> Any:
     """Register a new user"""
     logger.info(f"Registration attempt for email: {user_data.email}")
-    
+
     # Validate user data explicitly (FastAPI should handle this, but let's be explicit)
     try:
         # Basic validation checks
         if not user_data.email or not user_data.email.strip():
-            logger.warning(f"Registration failed: Empty email provided")
+            logger.warning("Registration failed: Empty email provided")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email is required and cannot be empty"
+                detail="Email is required and cannot be empty",
             )
-        
+
         if not user_data.password or len(user_data.password) < 1:
-            logger.warning(f"Registration failed: Empty password for email {user_data.email}")
+            logger.warning(
+                f"Registration failed: Empty password for email {user_data.email}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password is required and cannot be empty"
+                detail="Password is required and cannot be empty",
             )
-            
+
         if len(user_data.password) < 6:
-            logger.warning(f"Registration failed: Password too short for email {user_data.email}")
+            logger.warning(
+                f"Registration failed: Password too short for email {user_data.email}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 6 characters long"
+                detail="Password must be at least 6 characters long",
             )
-            
+
     except ValidationError as e:
         logger.error(f"Validation error during registration for {user_data.email}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Validation error: {str(e)}"
+            detail=f"Validation error: {str(e)}",
         )
-    
+
     # Check if user already exists
     try:
         existing_user = await neo4j_service.get_user_by_email(user_data.email)
         if existing_user:
-            logger.warning(f"Registration failed: Email {user_data.email} already registered")
+            logger.warning(
+                f"Registration failed: Email {user_data.email} already registered"
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                detail="Email already registered",
             )
     except HTTPException:
         # Re-raise HTTP exceptions (like the 400 above) without modification
         raise
     except Exception as e:
-        logger.error(f"Database error checking existing user for {user_data.email}: {e}")
+        logger.error(
+            f"Database error checking existing user for {user_data.email}: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database connection error while checking existing user"
+            detail="Database connection error while checking existing user",
         )
-    
+
     # Create the user
     try:
         logger.info(f"Creating user for email: {user_data.email}")
         user_in_db = await neo4j_service.create_user(user_data)
         logger.info(f"User created successfully with ID: {user_in_db.id}")
-        
+
         # Return user without password
         return User(
             id=user_in_db.id,
@@ -117,7 +125,7 @@ async def register(user_data: UserCreate) -> Any:
             last_maintenance_notification=user_in_db.last_maintenance_notification,
             last_login=user_in_db.last_login,
             role=user_in_db.role,
-            account_active=user_in_db.account_active
+            account_active=user_in_db.account_active,
         )
     except HTTPException:
         # Re-raise HTTP exceptions without modification
@@ -126,13 +134,18 @@ async def register(user_data: UserCreate) -> Any:
         logger.error(f"Failed to create user for {user_data.email}: {e}")
         # Check if it's a database constraint error (like unique constraint violation)
         error_str = str(e).lower()
-        if "unique" in error_str or "constraint" in error_str or "duplicate" in error_str or "already exists" in error_str:
+        if (
+            "unique" in error_str
+            or "constraint" in error_str
+            or "duplicate" in error_str
+            or "already exists" in error_str
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already exists in database"
+                detail="Email already exists in database",
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create user: {str(e)}"
+                detail=f"Failed to create user: {str(e)}",
             )

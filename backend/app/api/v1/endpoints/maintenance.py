@@ -27,10 +27,9 @@ async def read_maintenance_records(
         vehicles = await neo4j_service.get_user_vehicles(current_user.id)
         if not any(v.id == vehicle_id for v in vehicles):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Vehicle not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found"
             )
-        
+
         records = await neo4j_service.get_maintenance_records(vehicle_id)
         return records
     except HTTPException:
@@ -38,7 +37,7 @@ async def read_maintenance_records(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve maintenance records: {str(e)}"
+            detail=f"Failed to retrieve maintenance records: {str(e)}",
         )
 
 
@@ -52,14 +51,13 @@ async def create_maintenance_record(
         vehicles = await neo4j_service.get_user_vehicles(current_user.id)
         if not any(v.id == record.vehicle_id for v in vehicles):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Vehicle not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found"
             )
-        
+
         # Create the maintenance record
         maintenance_id = str(uuid.uuid4())
         created_at = datetime.utcnow()
-        
+
         maintenance_record = Maintenance(
             id=maintenance_id,
             vehicle_id=record.vehicle_id,
@@ -69,22 +67,24 @@ async def create_maintenance_record(
             description=record.description,
             cost=record.cost,
             service_provider=record.service_provider,
-            created_at=created_at
+            created_at=created_at,
         )
-        
+
         # Save to Neo4j
         await neo4j_service.create_maintenance_record(maintenance_record)
-        
+
         # Update vehicle mileage if this is the latest service
-        await neo4j_service.update_vehicle_mileage_if_higher(record.vehicle_id, record.mileage)
-        
+        await neo4j_service.update_vehicle_mileage_if_higher(
+            record.vehicle_id, record.mileage
+        )
+
         return maintenance_record
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create maintenance record: {str(e)}"
+            detail=f"Failed to create maintenance record: {str(e)}",
         )
 
 
