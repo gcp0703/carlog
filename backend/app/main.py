@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.cron_scheduler import scheduler
 
 # Configure logging
 logging.basicConfig(
@@ -87,6 +88,23 @@ async def general_exception_handler(request: Request, exc: Exception):
             "url": str(request.url)
         }
     )
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Start the cron scheduler on application startup"""
+    try:
+        scheduler.start()
+        logger.info("Application startup complete, cron scheduler started")
+    except Exception as e:
+        logger.error(f"Failed to start cron scheduler: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop the cron scheduler on application shutdown"""
+    scheduler.stop()
+    logger.info("Application shutdown complete")
 
 
 @app.get("/")

@@ -1,4 +1,5 @@
 from typing import Optional, Literal
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
@@ -10,6 +11,8 @@ class UserBase(BaseModel):
     sms_notifications_enabled: Optional[bool] = True
     sms_notification_frequency: Optional[Literal["weekly", "monthly", "quarterly"]] = "monthly"
     maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = "quarterly"
+    last_update_request: Optional[datetime] = None
+    last_maintenance_notification: Optional[datetime] = None
     account_active: Optional[bool] = True
 
 
@@ -41,6 +44,8 @@ class UserUpdate(BaseModel):
     sms_notifications_enabled: Optional[bool] = None
     sms_notification_frequency: Optional[Literal["weekly", "monthly", "quarterly"]] = None
     maintenance_notification_frequency: Optional[Literal["monthly", "quarterly", "annually"]] = None
+    last_update_request: Optional[datetime] = None
+    last_maintenance_notification: Optional[datetime] = None
     account_active: Optional[bool] = None
     password: Optional[str] = None
 

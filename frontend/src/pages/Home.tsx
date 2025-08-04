@@ -46,10 +46,6 @@ const Home: React.FC = () => {
               <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>📊 Complete Records</h3>
               <p>Track all maintenance history with costs, dates, and service providers</p>
             </div>
-            <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-              <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>🚗 Multi-Vehicle</h3>
-              <p>Manage maintenance for all your vehicles in one place</p>
-            </div>
           </div>
         </section>
 

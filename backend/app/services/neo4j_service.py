@@ -73,6 +73,8 @@ class Neo4jService:
                         sms_notifications_enabled: $sms_notifications_enabled,
                         sms_notification_frequency: $sms_notification_frequency,
                         maintenance_notification_frequency: $maintenance_notification_frequency,
+                        last_update_request: $last_update_request,
+                        last_maintenance_notification: $last_maintenance_notification,
                         account_active: $account_active
                     })
                     RETURN u
@@ -86,6 +88,8 @@ class Neo4jService:
                     sms_notifications_enabled=user_data.sms_notifications_enabled,
                     sms_notification_frequency=user_data.sms_notification_frequency,
                     maintenance_notification_frequency=user_data.maintenance_notification_frequency,
+                    last_update_request=user_data.last_update_request.isoformat() if user_data.last_update_request else None,
+                    last_maintenance_notification=user_data.last_maintenance_notification.isoformat() if user_data.last_maintenance_notification else None,
                     account_active=user_data.account_active
                 )
                 
@@ -103,6 +107,8 @@ class Neo4jService:
                         sms_notifications_enabled=node.get("sms_notifications_enabled", True),
                         sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
                         maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
+                        last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                        last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -144,6 +150,8 @@ class Neo4jService:
                         sms_notifications_enabled=node.get("sms_notifications_enabled", True),
                         sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
                         maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
+                        last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                        last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -177,6 +185,8 @@ class Neo4jService:
                     sms_notifications_enabled=node.get("sms_notifications_enabled", True),
                     sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
                     maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
+                    last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                    last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
                     account_active=node.get("account_active", True)
                 )
             return None
@@ -192,6 +202,10 @@ class Neo4jService:
                 # Hash password if provided
                 set_clauses.append("u.hashed_password = $hashed_password")
                 params["hashed_password"] = get_password_hash(value)
+            elif field in ["last_update_request", "last_maintenance_notification"] and value is not None:
+                # Convert datetime to ISO format string
+                set_clauses.append(f"u.{field} = ${field}")
+                params[field] = value.isoformat() if isinstance(value, datetime) else value
             else:
                 set_clauses.append(f"u.{field} = ${field}")
                 params[field] = value
@@ -220,6 +234,8 @@ class Neo4jService:
                     sms_notifications_enabled=node.get("sms_notifications_enabled", True),
                     sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
                     maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
+                    last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                    last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
                     account_active=node.get("account_active", True)
                 )
             return None
@@ -232,6 +248,40 @@ class Neo4jService:
         if not verify_password(password, user.hashed_password):
             return None
         return user
+    
+    async def get_all_active_users(self) -> List[User]:
+        """Get all active users"""
+        try:
+            with self.get_session() as session:
+                result = session.run(
+                    "MATCH (u:User) WHERE u.account_active = true RETURN u"
+                )
+                
+                users = []
+                for record in result:
+                    node = record["u"]
+                    users.append(User(
+                        id=node["id"],
+                        email=node["email"],
+                        phone_number=node.get("phone_number"),
+                        zip_code=node.get("zip_code"),
+                        email_notifications_enabled=node.get("email_notifications_enabled", True),
+                        sms_notifications_enabled=node.get("sms_notifications_enabled", True),
+                        sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
+                        maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
+                        last_update_request=datetime.fromisoformat(node["last_update_request"]) if node.get("last_update_request") else None,
+                        last_maintenance_notification=datetime.fromisoformat(node["last_maintenance_notification"]) if node.get("last_maintenance_notification") else None,
+                        account_active=node.get("account_active", True)
+                    ))
+                
+                return users
+                
+        except Neo4jError as e:
+            self.logger.error(f"Neo4j error retrieving active users: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Unexpected error retrieving active users: {e}")
+            return []
 
     # Vehicle management methods
     async def create_vehicle(self, owner_id: str, vehicle_data: VehicleCreate) -> Vehicle:

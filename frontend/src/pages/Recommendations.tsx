@@ -109,47 +109,47 @@ const Recommendations: React.FC = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '30px', marginBottom: '30px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', flexWrap: 'wrap', gap: '20px' }}>
         <div>
           <h1 style={{ margin: '0' }}>Service Recommendations</h1>
           <p style={{ margin: '5px 0 0 0', color: '#666' }}>AI-powered maintenance recommendations</p>
         </div>
         
-        <div style={{ flex: '1', minWidth: '300px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>
-            Vehicle:
-          </label>
-          <select
-            value={selectedVehicleId}
-            onChange={(e) => setSelectedVehicleId(e.target.value)}
-            style={{
-              width: '100%',
-              maxWidth: '400px',
-              padding: '8px',
-              fontSize: '15px',
-              borderRadius: '4px',
-              border: '1px solid #ddd',
-            }}
-          >
-            {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={vehicle.id}>
-                {vehicle.year} {vehicle.brand} {vehicle.model}
-                {vehicle.trim && ` ${vehicle.trim}`}
-              </option>
-            ))}
-          </select>
-        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>
+              Vehicle:
+            </label>
+            <select
+              value={selectedVehicleId}
+              onChange={(e) => setSelectedVehicleId(e.target.value)}
+              style={{
+                width: '300px',
+                padding: '8px',
+                fontSize: '15px',
+                borderRadius: '4px',
+                border: '1px solid #ddd',
+              }}
+            >
+              {vehicles.map((vehicle) => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.year} {vehicle.brand} {vehicle.model}
+                  {vehicle.trim && ` ${vehicle.trim}`}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {selectedVehicle && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '30px',
-            alignItems: 'center',
-            padding: '15px 20px',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '6px',
-            border: '1px solid #e0e0e0'
-          }}>
+          {selectedVehicle && (
+            <div style={{ 
+              display: 'flex', 
+              gap: '30px',
+              alignItems: 'center',
+              padding: '15px 20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '6px',
+              border: '1px solid #e0e0e0'
+            }}>
             {selectedVehicle.current_mileage && (
               <div>
                 <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>Mileage</div>
@@ -172,9 +172,56 @@ const Recommendations: React.FC = () => {
               </Link>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
       
+      <div style={{
+        backgroundColor: '#e3f2fd',
+        border: '1px solid #1976d2',
+        borderRadius: '8px',
+        padding: '20px',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#1976d2' }}>
+          What Our AI Analyzes
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+          <div>
+            <strong style={{ color: '#1565c0' }}>Immediate Needs:</strong>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+              <li>Urgent maintenance items</li>
+              <li>Safety-critical services</li>
+              <li>Overdue maintenance</li>
+            </ul>
+          </div>
+          <div>
+            <strong style={{ color: '#1565c0' }}>Scheduled Services:</strong>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+              <li>Upcoming maintenance by mileage</li>
+              <li>Time-based service intervals</li>
+              <li>Manufacturer recommendations</li>
+            </ul>
+          </div>
+          <div>
+            <strong style={{ color: '#1565c0' }}>Model-Specific Insights:</strong>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+              <li>Known issues for your model</li>
+              <li>Preventive measures</li>
+              <li>Recall information</li>
+            </ul>
+          </div>
+          <div>
+            <strong style={{ color: '#1565c0' }}>Cost Estimates:</strong>
+            <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+              <li>Service cost ranges</li>
+              <li>Priority-based budgeting</li>
+              <li>Location-specific pricing</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {loadingRecommendations ? (
         <div style={{ 
           border: '1px solid #ddd', 
