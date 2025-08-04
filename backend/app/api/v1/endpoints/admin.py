@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-from app.api.dependencies import get_current_active_user, get_neo4j_service
+from app.utils.deps import get_current_user
 from app.models.user import User, UserWithVehicleCount
-from app.services.neo4j_service import Neo4jService
+from app.services.neo4j_service import neo4j_service
 from app.cron_scheduler import run_manual_reminder_check
 import logging
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @router.post("/trigger-reminders")
 async def trigger_reminders(
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Manually trigger the reminder check process.
@@ -37,7 +37,7 @@ async def trigger_reminders(
         )
 
 
-def check_admin_role(current_user: User = Depends(get_current_active_user)) -> User:
+def check_admin_role(current_user: User = Depends(get_current_user)) -> User:
     """Check if the current user has admin role"""
     if current_user.role != "admin":
         raise HTTPException(
@@ -49,8 +49,7 @@ def check_admin_role(current_user: User = Depends(get_current_active_user)) -> U
 
 @router.get("/users", response_model=List[UserWithVehicleCount])
 async def list_users(
-    current_admin: User = Depends(check_admin_role),
-    neo4j_service: Neo4jService = Depends(get_neo4j_service)
+    current_admin: User = Depends(check_admin_role)
 ):
     """
     Get all users with their vehicle counts.

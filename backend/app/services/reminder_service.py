@@ -102,9 +102,9 @@ class ReminderService:
                 message = f"Hi! Time for your CarLog update. Reply with your current mileage for any of your {len(vehicles)} vehicles. Include vehicle name if you have multiple."
             
             # Send SMS
-            success = self.sms_service.send_sms(user.phone_number, message)
+            message_sid = self.sms_service.send_sms(user.phone_number, message)
             
-            if success:
+            if message_sid:
                 # Update last_update_request timestamp
                 await self.neo4j_service.update_user(
                     user.id,
@@ -112,7 +112,7 @@ class ReminderService:
                 )
                 self.logger.info(f"Sent SMS reminder to user {user.id}")
             
-            return success
+            return bool(message_sid)
             
         except Exception as e:
             self.logger.error(f"Error sending SMS reminder to user {user.id}: {e}")
@@ -136,8 +136,8 @@ class ReminderService:
             # Send SMS if enabled
             if user.sms_notifications_enabled and user.phone_number:
                 message = f"CarLog Maintenance Alert: Check your maintenance schedule at carlog.piprivate.net. You have {len(vehicles)} vehicle(s) that may need service soon."
-                sms_success = self.sms_service.send_sms(user.phone_number, message)
-                if sms_success:
+                message_sid = self.sms_service.send_sms(user.phone_number, message)
+                if message_sid:
                     success = True
             
             # TODO: Send email if enabled

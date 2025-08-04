@@ -57,6 +57,10 @@ class CarAPIService:
             self._jwt_expires is None or 
             datetime.now() >= self._jwt_expires):
             await self._authenticate()
+        
+        if self._jwt_token is None:
+            raise Exception("Failed to obtain JWT token")
+        
         return self._jwt_token
 
     async def _make_request(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
