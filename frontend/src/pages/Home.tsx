@@ -29,14 +29,18 @@ const Home: React.FC = () => {
           <h2 style={{ color: '#333', marginBottom: '20px' }}>
             Key Features
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+              <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>🤖 AI-Powered Prevention</h3>
+              <p>Get model-specific recommendations to prevent known issues before they occur</p>
+            </div>
+            <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+              <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>🔔 Fully Automated Smart Reminders</h3>
+              <p>Get timely notifications on your schedule - weekly, monthly, or quarterly</p>
+            </div>
             <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
               <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>📱 SMS Integration</h3>
               <p>Update your mileage and maintenance records via simple text messages</p>
-            </div>
-            <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-              <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>🔔 Smart Reminders</h3>
-              <p>Get timely notifications based on mileage and time intervals</p>
             </div>
             <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
               <h3 style={{ color: '#4CAF50', marginBottom: '10px' }}>📊 Complete Records</h3>

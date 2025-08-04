@@ -5,6 +5,8 @@ export interface User {
   zip_code?: string;
   email_notifications_enabled?: boolean;
   sms_notifications_enabled?: boolean;
+  sms_notification_frequency?: 'weekly' | 'monthly' | 'quarterly';
+  maintenance_notification_frequency?: 'monthly' | 'quarterly' | 'annually';
   account_active?: boolean;
 }
 

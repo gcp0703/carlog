@@ -11,6 +11,8 @@ const Profile: React.FC = () => {
   const [zipCode, setZipCode] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
+  const [smsFrequency, setSmsFrequency] = useState<'weekly' | 'monthly' | 'quarterly'>('monthly');
+  const [maintenanceFrequency, setMaintenanceFrequency] = useState<'monthly' | 'quarterly' | 'annually'>('quarterly');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -25,6 +27,8 @@ const Profile: React.FC = () => {
       setZipCode(user.zip_code || '');
       setEmailNotifications(user.email_notifications_enabled !== false);
       setSmsNotifications(user.sms_notifications_enabled === true);
+      setSmsFrequency(user.sms_notification_frequency || 'monthly');
+      setMaintenanceFrequency(user.maintenance_notification_frequency || 'quarterly');
     }
   }, [user]);
 
@@ -82,6 +86,8 @@ const Profile: React.FC = () => {
         phone_number: phoneNumber || null,
         email_notifications_enabled: emailNotifications,
         sms_notifications_enabled: smsNotifications,
+        sms_notification_frequency: smsFrequency,
+        maintenance_notification_frequency: maintenanceFrequency,
       };
 
       // Only include password if it's being changed
@@ -255,6 +261,61 @@ const Profile: React.FC = () => {
               />
               <span style={{ fontWeight: 'normal' }}>SMS Notifications</span>
             </label>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Notification Schedule</h3>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="smsFrequency" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              SMS Reminder Frequency
+            </label>
+            <select
+              id="smsFrequency"
+              value={smsFrequency}
+              onChange={(e) => setSmsFrequency(e.target.value as 'weekly' | 'monthly' | 'quarterly')}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                borderRadius: '4px',
+                border: '1px solid #ddd',
+              }}
+              disabled={!smsNotifications}
+            >
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+            </select>
+            <small style={{ color: '#666' }}>
+              How often we'll prompt you for mileage updates via SMS
+            </small>
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="maintenanceFrequency" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              Maintenance Notification Frequency
+            </label>
+            <select
+              id="maintenanceFrequency"
+              value={maintenanceFrequency}
+              onChange={(e) => setMaintenanceFrequency(e.target.value as 'monthly' | 'quarterly' | 'annually')}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                borderRadius: '4px',
+                border: '1px solid #ddd',
+              }}
+            >
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annually">Annually</option>
+            </select>
+            <small style={{ color: '#666' }}>
+              How often we'll send maintenance recommendations for your vehicles
+            </small>
           </div>
         </div>
 

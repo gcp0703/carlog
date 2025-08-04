@@ -71,6 +71,8 @@ class Neo4jService:
                         zip_code: $zip_code,
                         email_notifications_enabled: $email_notifications_enabled,
                         sms_notifications_enabled: $sms_notifications_enabled,
+                        sms_notification_frequency: $sms_notification_frequency,
+                        maintenance_notification_frequency: $maintenance_notification_frequency,
                         account_active: $account_active
                     })
                     RETURN u
@@ -82,6 +84,8 @@ class Neo4jService:
                     zip_code=user_data.zip_code,
                     email_notifications_enabled=user_data.email_notifications_enabled,
                     sms_notifications_enabled=user_data.sms_notifications_enabled,
+                    sms_notification_frequency=user_data.sms_notification_frequency,
+                    maintenance_notification_frequency=user_data.maintenance_notification_frequency,
                     account_active=user_data.account_active
                 )
                 
@@ -97,6 +101,8 @@ class Neo4jService:
                         zip_code=node.get("zip_code"),
                         email_notifications_enabled=node.get("email_notifications_enabled", True),
                         sms_notifications_enabled=node.get("sms_notifications_enabled", True),
+                        sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
+                        maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -136,6 +142,8 @@ class Neo4jService:
                         zip_code=node.get("zip_code"),
                         email_notifications_enabled=node.get("email_notifications_enabled", True),
                         sms_notifications_enabled=node.get("sms_notifications_enabled", True),
+                        sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
+                        maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                         account_active=node.get("account_active", True)
                     )
                 else:
@@ -167,6 +175,8 @@ class Neo4jService:
                     zip_code=node.get("zip_code"),
                     email_notifications_enabled=node.get("email_notifications_enabled", True),
                     sms_notifications_enabled=node.get("sms_notifications_enabled", True),
+                    sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
+                    maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                     account_active=node.get("account_active", True)
                 )
             return None
@@ -208,6 +218,8 @@ class Neo4jService:
                     zip_code=node.get("zip_code"),
                     email_notifications_enabled=node.get("email_notifications_enabled", True),
                     sms_notifications_enabled=node.get("sms_notifications_enabled", True),
+                    sms_notification_frequency=node.get("sms_notification_frequency", "monthly"),
+                    maintenance_notification_frequency=node.get("maintenance_notification_frequency", "quarterly"),
                     account_active=node.get("account_active", True)
                 )
             return None
